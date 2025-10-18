@@ -35,44 +35,43 @@ int main(int argc, char **argv) {
 
   DIR *test_dir = opendir(relative_path);
 
-  char **files = malloc(sizeof(char *) * num_files);
+  char **files = malloc(sizeof(FILE *) * num_files);
 
   size_t i = 0;
+  char buffer[30];
   while (de = readdir(test_dir)) {
 
     if ((strcmp(de->d_name, "..") != 0) && (strcmp(de->d_name, ".") != 0)) {
-      files[i] = malloc(strlen(de->d_name) + 1);
-      files[i] = de->d_name;
+      strcpy(buffer, relative_path);
+      strcat(buffer, de->d_name);
+
+      files[i] = malloc(sizeof(buffer) + 1);
+      strcpy(files[i], buffer);
+
+      memset(buffer, '\0', 30);
       i++;
     }
   }
 
-  printf("file 0 = %s\n", files[0]);
+  for (int i = 0; i < num_files; i++) {
 
-  char *lineptr = NULL;
-  ssize_t check = 0;
+    printf("\n-------------------------------------------\n");
 
-  relative_path =
-      realloc(relative_path, sizeof(relative_path) + sizeof(files[i]) + 1);
-  strcat(relative_path, files[0]);
-  printf("\n\n\n%s\n", relative_path);
+    FILE *current_file = fopen(files[i], "r");
 
-  FILE *file_stream = fopen(relative_path, "r");
-  if (file_stream == NULL) {
-    printf("allocation error\n");
-    return  1;
+    ssize_t check = 0;
+    char *lineptr = NULL;
+    size_t len = 0;
+    while ((check = getline(&lineptr, &len, current_file)) != -1) {
+      printf("%s", lineptr);
+    }
+
+    fclose(current_file);
   }
 
-  size_t len = 0;
-  while ((check = getline(&lineptr, &len, file_stream)) != -1) {
-    printf("%s", lineptr);
-  }
-
-  fclose(file_stream);
-
+  printf("\n-------------------------------------------\n");
   // free(files);
   closedir(test_dir);
-  free(relative_path);
 
   return 0;
 }
